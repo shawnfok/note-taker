@@ -6,6 +6,7 @@ const uuid = require("uuid");
 
 // Tells node that we are creating an "express" server app
 const app = express();
+let db = require("./db/db.json");
 
 // Sets an initial port. We"ll use this later in our listener
 const PORT = process.env.PORT || 8080;
@@ -24,47 +25,41 @@ app.get("/notes", function (req, res) {
     res.sendFile(path.join(__dirname, "/public/notes.html"));
 });
 
-// API routes - GET
+// API route - GET
 app.get("/api/notes", function (req, res) {
-    let db = require("./db/db.json");
+    console.log("/api/notes-get");
     res.json(db);
 });
 
-// API routes - POST
+//API route - POST
 app.post("/api/notes", function (req, res) {
-    let db = require("./db/db.json");
-    let newNote = req.body;
-    // A unique ID will be assigned to a new note
-    newNote.id = uuid.v1();
-    db.push(newNote);
-    db = JSON.stringify(db);
-    fs.writeFileSync("./db/db.json", db, "utf-8", (err) => {
-        if (err) throw err;
-        console.log("Note created sucessfully!");
-    })
-    res.json(db);
+    let note = req.body;
+    note.id = uuid.v1();
+    db.push(note);
+    logToDB(db);
+    return res.json(db);
 });
 
-// API routes - DELETE
-app.get("/api/notes/:id", function (req, res) {
-    let db = require("./db/db.json");
+
+// API route - DELETE
+app.delete("/api/notes/:id", function (req, res) {
     let id = req.params.id;
     for (let i = 0; i < db.length; i++) {
-        if (db[i].id === id) {
+        if (id === db[i].id) {
             db.splice(i, 1);
-            db = JSON.stringify(db);
-            fs.writeFileSync("./db/db.json", db, "utf-8", (err) => {
-                if (err) throw err;
-                console.log("Note removed sucessfully!");
-            });
-        };
-    };
-    res.send(JSON.parse(db));
+            logToDB(db);
+            res.json(db);
+        }
+    }
 });
-
 
 // Listener
 // The below code effectively "starts" our server
 app.listen(PORT, function () {
     console.log("App listening on PORT: " + PORT);
 });
+
+//Log into db.json function
+function logToDB(array) {
+    fs.writeFileSync("./db/db.json", JSON.stringify(array));
+}
