@@ -3,7 +3,6 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const uuid = require("uuid");
-let savedNotes = require("/db/db.json");
 
 // Tells node that we are creating an "express" server app
 const app = express();
@@ -27,37 +26,42 @@ app.get("/notes", function (req, res) {
 
 // API routes - GET
 app.get("/api/notes", function (req, res) {
-    res.json(savedNotes);
+    let db = require("./db/db.json");
+    res.json(db);
 });
 
 // API routes - POST
 app.post("/api/notes", function (req, res) {
+    let db = require("./db/db.json");
     let newNote = req.body;
     // A unique ID will be assigned to a new note
-    newNote.id = uuid();
-    savedNotes.push(newNote);
-    savedNotes = JSON.parse(savedNotes);
-    fs.writeFileSync("/db/db.json", savedNotes, "utf-8", (err) => {
+    newNote.id = uuid.v1();
+    db.push(newNote);
+    db = JSON.stringify(db);
+    fs.writeFileSync("./db/db.json", db, "utf-8", (err) => {
         if (err) throw err;
         console.log("Note created sucessfully!");
     })
-    res.json(newNote);
+    res.json(db);
 });
 
 // API routes - DELETE
 app.get("/api/notes/:id", function (req, res) {
+    let db = require("./db/db.json");
     let id = req.params.id;
-    for (let i = 0; i < savedNotes.length; i++) {
-        if (savedNotes[i].id === id) {
-            savedNotes.splice(i, 1);
-            fs.writeFileSync("/db/db.json", savedNotes, "utf-8", (err) => {
+    for (let i = 0; i < db.length; i++) {
+        if (db[i].id === id) {
+            db.splice(i, 1);
+            db = JSON.stringify(db);
+            fs.writeFileSync("./db/db.json", db, "utf-8", (err) => {
                 if (err) throw err;
                 console.log("Note removed sucessfully!");
             });
         };
     };
-    res.json(savedNotes);
+    res.send(JSON.parse(db));
 });
+
 
 // Listener
 // The below code effectively "starts" our server
