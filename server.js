@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Routers
 // The below points the server to a series of "route" files
-app.get("*", function (req, res) {
+app.get("/", function (req, res) {
     res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 app.get("/notes", function (req, res) {
